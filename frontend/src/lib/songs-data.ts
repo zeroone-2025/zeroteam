@@ -7,6 +7,12 @@ export interface Song {
   albumGradient: string;
   toneFrequency: number;
   tonePattern: number[]; // sequence of note durations in ms
+  copyright?: {
+    safeCode: string;
+    originalTitle: string;
+    composer: string;
+    source: string;
+  };
 }
 
 export const SONGS: Song[] = [

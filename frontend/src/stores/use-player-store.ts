@@ -4,9 +4,11 @@ import { create } from "zustand";
 import { type Song, SONGS } from "@/lib/songs-data";
 import {
   type PrankMode,
+  type ScreenEffect,
   selectPrank,
   getSpeedChangeRate,
   getWrongSongIndex,
+  getScreenEffect,
   getPrankMessage,
 } from "@/lib/pranks";
 
@@ -33,6 +35,8 @@ interface PlayerState {
   wrongSongRevealed: boolean;
   speedRevealed: boolean;
   ghostVolumeAttempts: number;
+  screenEffect: ScreenEffect | null;
+  screenEffectRevealed: boolean;
 
   play: () => void;
   pause: () => void;
@@ -47,6 +51,7 @@ interface PlayerState {
   revealWrongSong: () => void;
   revealSpeed: () => void;
   incrementGhostAttempts: () => void;
+  revealScreenEffect: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -65,12 +70,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   wrongSongRevealed: false,
   speedRevealed: false,
   ghostVolumeAttempts: 0,
+  screenEffect: null,
+  screenEffectRevealed: false,
 
   play: () => {
     const state = get();
     const prank = selectPrank();
     let actualIndex = state.currentSongIndex;
     let speed = 1.0;
+    let effect: ScreenEffect | null = null;
 
     if (prank === "SPEED_CHANGE") {
       speed = getSpeedChangeRate();
@@ -79,6 +87,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         state.currentSongIndex,
         state.playlist.length
       );
+    } else if (prank === "SCREEN_PRANK") {
+      effect = getScreenEffect();
     }
 
     const message = getPrankMessage(prank);
@@ -103,6 +113,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         wrongSongRevealed: false,
         speedRevealed: false,
         ghostVolumeAttempts: 0,
+        screenEffect: effect,
+        screenEffectRevealed: false,
         prankHistory: [
           ...state.prankHistory,
           { mode: prank, message, songTitle, timestamp: Date.now() },
@@ -112,7 +124,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   pause: () => {
-    set({ isPlaying: false, wrongSongRevealed: false, speedRevealed: false, ghostVolumeAttempts: 0 });
+    set({ isPlaying: false, wrongSongRevealed: false, speedRevealed: false, ghostVolumeAttempts: 0, screenEffect: null, screenEffectRevealed: false });
   },
 
   nextSong: () => {
@@ -215,5 +227,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   incrementGhostAttempts: () => {
     set((state) => ({ ghostVolumeAttempts: state.ghostVolumeAttempts + 1 }));
+  },
+
+  revealScreenEffect: () => {
+    set({ screenEffectRevealed: true, screenEffect: null });
   },
 }));

@@ -1,6 +1,6 @@
-export type PrankMode = "FAKE_PLAY" | "SPEED_CHANGE" | "WRONG_SONG";
+export type PrankMode = "FAKE_PLAY" | "SPEED_CHANGE" | "WRONG_SONG" | "SCREEN_PRANK";
 
-const PRANK_MODES: PrankMode[] = ["FAKE_PLAY", "SPEED_CHANGE", "WRONG_SONG"];
+const PRANK_MODES: PrankMode[] = ["FAKE_PLAY", "SPEED_CHANGE", "WRONG_SONG", "SCREEN_PRANK"];
 
 export function selectPrank(): PrankMode {
   return PRANK_MODES[Math.floor(Math.random() * PRANK_MODES.length)];
@@ -42,12 +42,30 @@ const WRONG_SONG_MESSAGES = [
   "🎶 오늘의 깜짝 추천곡!",
 ];
 
+export type ScreenEffect = "FLIP" | "INVERT" | "SHAKE" | "RAINBOW" | "BLUR" | "TILT";
+
+const SCREEN_EFFECTS: ScreenEffect[] = ["FLIP", "INVERT", "SHAKE", "RAINBOW", "BLUR", "TILT"];
+
+export function getScreenEffect(): ScreenEffect {
+  return SCREEN_EFFECTS[Math.floor(Math.random() * SCREEN_EFFECTS.length)];
+}
+
+const SCREEN_PRANK_MESSAGES = [
+  "🎨 프리미엄 시각 이펙트 적용 중...",
+  "🌈 몰입감 200% 모드 활성화!",
+  "🔮 AI가 최적의 화면 설정을 찾았습니다",
+  "✨ 새로운 UI 테마를 적용합니다 (되돌릴 수 없음)",
+  "🎪 당신만을 위한 특별한 비주얼 경험!",
+];
+
 export function getPrankMessage(mode: PrankMode): string {
   const messages =
     mode === "FAKE_PLAY"
       ? FAKE_PLAY_MESSAGES
       : mode === "SPEED_CHANGE"
         ? SPEED_CHANGE_MESSAGES
-        : WRONG_SONG_MESSAGES;
+        : mode === "SCREEN_PRANK"
+          ? SCREEN_PRANK_MESSAGES
+          : WRONG_SONG_MESSAGES;
   return messages[Math.floor(Math.random() * messages.length)];
 }

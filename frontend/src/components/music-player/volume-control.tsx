@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { usePlayerStore } from "@/stores/use-player-store";
 import { Slider } from "@/components/ui/slider";
 import { Volume2, VolumeX, Volume1 } from "lucide-react";
@@ -20,31 +20,69 @@ export function VolumeControl() {
   const currentPrankMode = usePlayerStore((s) => s.currentPrankMode);
   const ghostVolumeAttempts = usePlayerStore((s) => s.ghostVolumeAttempts);
 
-  const [offsetX, setOffsetX] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const isGhostMode = currentPrankMode === "FAKE_PLAY" && isPlaying;
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isGhostMode || !containerRef.current) return;
+  // null = normal flow, { x, y } = fixed position (runaway mode)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+
+  // Enter/exit ghost runaway mode
+  useEffect(() => {
+    if (isGhostMode && !pos && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setPos({ x: rect.left, y: rect.top });
+    }
+    if (!isGhostMode) {
+      setPos(null);
+    }
+  }, [isGhostMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Global pointer tracking for runaway behavior
+  useEffect(() => {
+    if (!pos) return;
+
+    const handler = (e: PointerEvent) => {
+      if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const sliderCenterX = rect.left + rect.width / 2 + offsetX;
-      const distance = Math.abs(e.clientX - sliderCenterX);
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-      if (distance < 50) {
-        // Run away from pointer
-        const direction = e.clientX > sliderCenterX ? -1 : 1;
-        setOffsetX((prev) => {
-          const next = prev + direction * 60;
-          // Clamp to prevent going off-screen
-          return Math.max(-80, Math.min(80, next));
-        });
-        setVolume(volume); // triggers ghostVolumeAttempts++
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < 100) {
+        // Run away from pointer in the opposite direction
+        const angle = Math.atan2(dy, dx);
+        const runDistance = 150 + Math.random() * 100; // 150~250px random
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const pad = 16;
+
+        const newX = Math.max(pad, Math.min(vw - rect.width - pad,
+          pos.x - Math.cos(angle) * runDistance
+        ));
+        const newY = Math.max(pad, Math.min(vh - rect.height - pad,
+          pos.y - Math.sin(angle) * runDistance
+        ));
+
+        setPos({ x: newX, y: newY });
+
+        // Trigger shake animation
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 300);
+
+        // Increment ghost attempts
+        setVolume(volume);
       }
-    },
-    [isGhostMode, offsetX, setVolume, volume]
-  );
+    };
+
+    window.addEventListener("pointermove", handler);
+    return () => window.removeEventListener("pointermove", handler);
+  }, [pos, setVolume, volume]);
 
   const handleSliderChange = useCallback(
     (val: number | readonly number[]) => {
@@ -57,15 +95,25 @@ export function VolumeControl() {
   const VolumeIcon =
     volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
+  const isRunaway = pos !== null;
+
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center gap-2"
-      onPointerMove={handlePointerMove}
+      className={`relative flex items-center gap-2 ${isRunaway ? "z-50" : ""}`}
+      style={
+        isRunaway
+          ? {
+              position: "fixed",
+              left: pos.x,
+              top: pos.y,
+              transition: "left 300ms ease-out, top 300ms ease-out",
+            }
+          : undefined
+      }
     >
       <div
-        className="flex items-center gap-2 transition-transform duration-300"
-        style={{ transform: isGhostMode ? `translateX(${offsetX}px)` : "none" }}
+        className={`flex items-center gap-2 ${isShaking ? "volume-shake" : ""}`}
       >
         <VolumeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
         <Slider

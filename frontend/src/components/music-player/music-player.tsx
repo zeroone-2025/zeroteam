@@ -11,6 +11,7 @@ import { VolumeControl } from "./volume-control";
 import { Playlist } from "./playlist";
 import { PrankHistory } from "./prank-history";
 import { ConfettiEffect } from "./confetti-effect";
+import { ScreenEffect } from "./screen-effect";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ export function MusicPlayer() {
   const prankCount = usePlayerStore((s) => s.prankCount);
   const lastPrankMessage = usePlayerStore((s) => s.lastPrankMessage);
   const wrongSongRevealed = usePlayerStore((s) => s.wrongSongRevealed);
+  const screenEffectRevealed = usePlayerStore((s) => s.screenEffectRevealed);
   const prevPrankCountRef = useRef(0);
 
   // Sync songs from API
@@ -49,7 +51,8 @@ export function MusicPlayer() {
 
   return (
     <>
-      <ConfettiEffect trigger={wrongSongRevealed} />
+      <ConfettiEffect trigger={wrongSongRevealed || screenEffectRevealed} />
+      <ScreenEffect />
       <div className="mx-auto grid w-full max-w-4xl gap-6 md:grid-cols-[1fr_320px]">
         {/* Player Section */}
         <Card>

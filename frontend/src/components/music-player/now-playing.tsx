@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { SpeedSlotMachine } from "./speed-slot-machine";
 import { WrongSongReveal } from "./wrong-song-reveal";
+import { SongCredits } from "./song-credits";
 
 export function NowPlaying() {
   const playlist = usePlayerStore((s) => s.playlist);
@@ -106,6 +107,18 @@ export function NowPlaying() {
         <h2 className="text-xl font-bold">{song.title}</h2>
         <p className="text-sm text-muted-foreground">{song.artist}</p>
       </div>
+
+      {/* Copyright info */}
+      {song.copyright && (
+        <Dialog>
+          <DialogTrigger>
+            <button className="text-xs text-muted-foreground hover:underline">
+              BGM: {song.copyright.originalTitle} | 셀바이뮤직
+            </button>
+          </DialogTrigger>
+          <SongCredits song={song} />
+        </Dialog>
+      )}
     </>
   );
 
@@ -164,6 +177,12 @@ export function NowPlaying() {
         {isWrongSongMode && wrongSongRevealed && (
           <Badge variant="destructive" className="animate-bounce">
             🔀 곡이 바뀜!
+          </Badge>
+        )}
+
+        {currentPrankMode === "SCREEN_PRANK" && isPlaying && (
+          <Badge variant="destructive" className="animate-pulse">
+            🎨 비주얼 이펙트 ON
           </Badge>
         )}
       </div>
