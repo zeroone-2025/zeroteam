@@ -1,4 +1,4 @@
-# 🛠️ 개발 문서 — ZeroTune Premium+
+# 🛠️ 개발 문서 — I'M KING
 
 > 세상에서 가장 쓸데없는 음악 플레이어
 
@@ -45,7 +45,7 @@ src/
 │   │   ├── playlist.tsx                # 노래 목록 패널
 │   │   └── playlist-item.tsx           # 개별 노래 항목
 │   └── layout/
-│       └── header.tsx                  # "ZeroTune Premium+" 브랜딩
+│       └── header.tsx                  # "I'M KING" 브랜딩
 ├── hooks/
 │   ├── use-songs.ts                    # React Query - GET /api/songs
 │   └── use-audio-engine.ts            # Web Audio API 훅

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ZeroTune Premium+ | 세상에서 가장 쓸데없는 음악 플레이어",
+  title: "I'M KING | 세상에서 가장 쓸데없는 음악 플레이어",
   description: "세상에서 가장 프리미엄한 음악 경험",
 };
 

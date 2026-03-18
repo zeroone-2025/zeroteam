@@ -141,7 +141,7 @@ export function NowPlaying() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>ZeroTune Premium+ 구독</DialogTitle>
+              <DialogTitle>I&apos;M KING 구독</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-2xl font-bold">월 ₩99,999,999</p>
