@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { usePlayerStore } from "@/stores/use-player-store";
 import { Slider } from "@/components/ui/slider";
 import { Volume2, VolumeX, Volume1 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function GhostEmoji() {
   return (
@@ -25,6 +26,8 @@ export function VolumeControl() {
   const containerRef = useRef<HTMLDivElement>(null);
   const posRef = useRef<{ x: number; y: number } | null>(null);
   const isGhostMode = currentPrankMode === "FAKE_PLAY" && isPlaying;
+
+  const [isHovered, setIsHovered] = useState(false);
 
   const [renderPos, setRenderPos] = useState<{ x: number; y: number } | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -104,10 +107,14 @@ export function VolumeControl() {
   const VolumeIcon =
     volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
+  const volumePercent = Math.round(volume * 100);
+
   const volumeUI = (
     <div
       ref={containerRef}
       className="relative flex items-center gap-2"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div
         className={`flex items-center gap-2 ${isShaking ? "volume-shake" : ""}`}
@@ -120,6 +127,14 @@ export function VolumeControl() {
           step={1}
           className="w-24 cursor-pointer"
         />
+        <span
+          className={cn(
+            "min-w-[2.5ch] text-right text-xs tabular-nums text-muted-foreground transition-opacity duration-200",
+            isHovered ? "opacity-100" : "opacity-0"
+          )}
+        >
+          {volumePercent}%
+        </span>
       </div>
       {isGhostMode && ghostVolumeAttempts >= 3 && <GhostEmoji />}
     </div>
