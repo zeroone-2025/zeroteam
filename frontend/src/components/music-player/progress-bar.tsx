@@ -4,6 +4,7 @@ import { usePlayerStore } from "@/stores/use-player-store";
 import { Slider } from "@/components/ui/slider";
 
 function formatTime(seconds: number): string {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
@@ -18,7 +19,7 @@ export function ProgressBar() {
   const song = playlist[currentSongIndex];
   if (!song) return null;
 
-  const currentTime = (progress / 100) * song.duration;
+  const currentTime = song.duration ? (progress / 100) * song.duration : 0;
 
   return (
     <div className="w-full space-y-1">

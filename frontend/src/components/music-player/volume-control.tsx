@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { usePlayerStore } from "@/stores/use-player-store";
 import { Slider } from "@/components/ui/slider";
 import { Volume2, VolumeX, Volume1 } from "lucide-react";
@@ -19,31 +20,36 @@ export function VolumeControl() {
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const currentPrankMode = usePlayerStore((s) => s.currentPrankMode);
   const ghostVolumeAttempts = usePlayerStore((s) => s.ghostVolumeAttempts);
+  const incrementGhostAttempts = usePlayerStore((s) => s.incrementGhostAttempts);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef<{ x: number; y: number } | null>(null);
   const isGhostMode = currentPrankMode === "FAKE_PLAY" && isPlaying;
 
-  // null = normal flow, { x, y } = fixed position (runaway mode)
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [renderPos, setRenderPos] = useState<{ x: number; y: number } | null>(null);
   const [isShaking, setIsShaking] = useState(false);
 
   // Enter/exit ghost runaway mode
   useEffect(() => {
-    if (isGhostMode && !pos && containerRef.current) {
+    if (isGhostMode && !posRef.current && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      setPos({ x: rect.left, y: rect.top });
+      const initial = { x: rect.left, y: rect.top };
+      posRef.current = initial;
+      setRenderPos(initial);
     }
     if (!isGhostMode) {
-      setPos(null);
+      posRef.current = null;
+      setRenderPos(null);
     }
-  }, [isGhostMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isGhostMode]);
 
-  // Global pointer tracking for runaway behavior
+  // Global pointer tracking for runaway behavior — registered once when entering/exiting runaway mode
   useEffect(() => {
-    if (!pos) return;
+    if (!renderPos) return;
 
     const handler = (e: PointerEvent) => {
-      if (!containerRef.current) return;
+      const pos = posRef.current;
+      if (!pos || !containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -62,27 +68,30 @@ export function VolumeControl() {
         const vh = window.innerHeight;
         const pad = 16;
 
-        const newX = Math.max(pad, Math.min(vw - rect.width - pad,
-          pos.x - Math.cos(angle) * runDistance
-        ));
-        const newY = Math.max(pad, Math.min(vh - rect.height - pad,
-          pos.y - Math.sin(angle) * runDistance
-        ));
+        const newPos = {
+          x: Math.max(pad, Math.min(vw - rect.width - pad,
+            pos.x - Math.cos(angle) * runDistance
+          )),
+          y: Math.max(pad, Math.min(vh - rect.height - pad,
+            pos.y - Math.sin(angle) * runDistance
+          )),
+        };
 
-        setPos({ x: newX, y: newY });
+        posRef.current = newPos;
+        setRenderPos(newPos);
 
         // Trigger shake animation
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 300);
 
-        // Increment ghost attempts
-        setVolume(volume);
+        // Increment ghost attempts directly
+        incrementGhostAttempts();
       }
     };
 
     window.addEventListener("pointermove", handler);
     return () => window.removeEventListener("pointermove", handler);
-  }, [pos, setVolume, volume]);
+  }, [renderPos !== null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSliderChange = useCallback(
     (val: number | readonly number[]) => {
@@ -95,22 +104,10 @@ export function VolumeControl() {
   const VolumeIcon =
     volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
-  const isRunaway = pos !== null;
-
-  return (
+  const volumeUI = (
     <div
       ref={containerRef}
-      className={`relative flex items-center gap-2 ${isRunaway ? "z-50" : ""}`}
-      style={
-        isRunaway
-          ? {
-              position: "fixed",
-              left: pos.x,
-              top: pos.y,
-              transition: "left 300ms ease-out, top 300ms ease-out",
-            }
-          : undefined
-      }
+      className="relative flex items-center gap-2"
     >
       <div
         className={`flex items-center gap-2 ${isShaking ? "volume-shake" : ""}`}
@@ -127,4 +124,29 @@ export function VolumeControl() {
       {isGhostMode && ghostVolumeAttempts >= 3 && <GhostEmoji />}
     </div>
   );
+
+  if (renderPos) {
+    return (
+      <>
+        {/* Placeholder to maintain layout when volume control is portaled out */}
+        <div className="w-[calc(1rem+96px+16px)] h-4" />
+        {createPortal(
+          <div
+            style={{
+              position: "fixed",
+              left: renderPos.x,
+              top: renderPos.y,
+              zIndex: 9999,
+              transition: "left 300ms ease-out, top 300ms ease-out",
+            }}
+          >
+            {volumeUI}
+          </div>,
+          document.body
+        )}
+      </>
+    );
+  }
+
+  return volumeUI;
 }

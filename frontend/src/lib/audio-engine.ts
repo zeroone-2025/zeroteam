@@ -98,6 +98,7 @@ export class AudioEngine {
   }
 
   setVolume(value: number) {
+    if (!isFinite(value)) return;
     this._volume = value;
     if (this.gainNode) {
       this.gainNode.gain.value = value;
