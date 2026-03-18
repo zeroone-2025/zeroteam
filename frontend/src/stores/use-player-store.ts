@@ -11,6 +11,7 @@ import {
   getScreenEffect,
   getPrankMessage,
 } from "@/lib/pranks";
+import { isDemoMode, getDemoStep } from "@/demo/demo-mode"; // DEMO: 삭제 가능
 
 export interface PrankHistoryEntry {
   mode: PrankMode;
@@ -78,20 +79,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   play: () => {
     const state = get();
-    const prank = selectPrank();
+    const demo = isDemoMode() ? getDemoStep() : null; // DEMO: 삭제 가능
+    const prank = demo ? demo.prank : selectPrank(); // DEMO: 원래: const prank = selectPrank();
     let actualIndex = state.currentSongIndex;
     let speed = 1.0;
     let effect: ScreenEffect | null = null;
 
     if (prank === "SPEED_CHANGE") {
-      speed = getSpeedChangeRate();
+      speed = demo?.speed ?? getSpeedChangeRate();
     } else if (prank === "WRONG_SONG") {
       actualIndex = getWrongSongIndex(
         state.currentSongIndex,
         state.playlist.length
       );
     } else if (prank === "SCREEN_PRANK") {
-      effect = getScreenEffect();
+      effect = demo?.effect ?? getScreenEffect();
     }
 
     const message = getPrankMessage(prank);
