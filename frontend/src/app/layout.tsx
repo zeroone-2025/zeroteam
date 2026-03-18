@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "제로톤 프로젝트",
-  description: "Zero에서 One을 만드는 2시간의 경험",
+  title: "ZeroTune Premium+ | 세상에서 가장 쓸데없는 음악 플레이어",
+  description: "세상에서 가장 프리미엄한 음악 경험",
 };
 
 export default function RootLayout({
