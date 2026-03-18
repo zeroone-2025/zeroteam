@@ -8,7 +8,7 @@ import { Volume2, VolumeX, Volume1 } from "lucide-react";
 
 function GhostEmoji() {
   return (
-    <span className="ghost-float pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 text-2xl">
+    <span className="ghost-float pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 text-5xl">
       👻
     </span>
   );

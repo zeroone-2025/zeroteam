@@ -14,12 +14,13 @@ export function ProgressBar() {
   const playlist = usePlayerStore((s) => s.playlist);
   const currentSongIndex = usePlayerStore((s) => s.currentSongIndex);
   const progress = usePlayerStore((s) => s.progress);
-  const setProgress = usePlayerStore((s) => s.setProgress);
+  const seekTo = usePlayerStore((s) => s.seekTo);
 
   const song = playlist[currentSongIndex];
   if (!song) return null;
 
-  const currentTime = song.duration ? (progress / 100) * song.duration : 0;
+  const duration = song.duration || 0;
+  const currentTime = duration ? (progress / 100) * duration : 0;
 
   return (
     <div className="w-full space-y-1">
@@ -27,11 +28,11 @@ export function ProgressBar() {
         value={[progress]}
         onValueChange={(val) => {
           const arr = val as number[];
-          setProgress(arr[0]);
+          seekTo(arr[0]);
         }}
         max={100}
         step={0.1}
-        className="cursor-pointer"
+        className="cursor-pointer [&_[data-slot=slider-track]]:!h-2"
       />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{formatTime(currentTime)}</span>

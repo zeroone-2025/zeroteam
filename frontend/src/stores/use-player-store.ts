@@ -37,6 +37,7 @@ interface PlayerState {
   ghostVolumeAttempts: number;
   screenEffect: ScreenEffect | null;
   screenEffectRevealed: boolean;
+  isSeeking: boolean;
 
   play: () => void;
   pause: () => void;
@@ -45,6 +46,7 @@ interface PlayerState {
   selectSong: (index: number) => void;
   setVolume: (v: number) => void;
   setProgress: (p: number) => void;
+  seekTo: (p: number) => void;
   tick: () => void;
   shufflePlaylist: () => void;
   setPlaylist: (songs: Song[]) => void;
@@ -72,6 +74,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   ghostVolumeAttempts: 0,
   screenEffect: null,
   screenEffectRevealed: false,
+  isSeeking: false,
 
   play: () => {
     const state = get();
@@ -182,12 +185,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ progress: p });
   },
 
+  seekTo: (p: number) => {
+    set({ progress: p, isSeeking: true });
+    // Clear isSeeking after a short delay so tick() resumes
+    setTimeout(() => {
+      set({ isSeeking: false });
+    }, 200);
+  },
+
   tick: () => {
     const state = get();
-    if (!state.isPlaying) return;
+    if (!state.isPlaying || state.isSeeking) return;
 
     const song = state.playlist[state.currentSongIndex];
-    if (!song) return;
+    if (!song || !song.duration) return;
 
     const increment = (100 / song.duration) * 0.1 * state.playbackSpeed;
     let newProgress = state.progress + increment;
